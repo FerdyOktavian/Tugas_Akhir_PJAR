@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daftar Akun - Network App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="auth-final-page">
+
+        <div class="auth-final-left">
+            <span class="hero-badge">Create Account</span>
+            <h1>Daftar Akun</h1>
+            <p>
+                Buat akun baru untuk mengakses fitur upload file TCP,
+                streaming video UDP, dan verifikasi email OTP.
+            </p>
+
+            <div class="auth-feature-list">
+                <div>
+                    <b>Register</b>
+                    <span>Data akun disimpan ke database MySQL.</span>
+                </div>
+
+                <div>
+                    <b>Login OTP</b>
+                    <span>Kode OTP dikirim ke email terdaftar.</span>
+                </div>
+
+                <div>
+                    <b>Dashboard</b>
+                    <span>Kelola fitur TCP dan UDP dari satu halaman.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-final-card">
+            <div class="auth-final-brand">
+                <div class="brand-icon">REG</div>
+                <div>
+                    <h2>Buat Akun</h2>
+                    <p>Gunakan email aktif untuk menerima OTP.</p>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert">
+                        {{ messages[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Contoh: ferdy" required>
+
+                <label>Email</label>
+                <input type="email" name="email" placeholder="Contoh: nama@email.com" required>
+
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Buat password" required>
+
+                <label>Konfirmasi Password</label>
+                <input type="password" name="confirm_password" placeholder="Ulangi password" required>
+
+                <button type="submit">Daftar</button>
+            </form>
+
+            <div class="auth-final-footer">
+                <span>Sudah punya akun?</span>
+                <a href="{{ url_for('login') }}">Login</a>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

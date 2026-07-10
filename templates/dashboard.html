@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Network App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="dashboard-container">
+
+        <div class="dashboard-hero">
+            <div>
+                <span class="hero-badge">Network Programming Project</span>
+                <h1>Dashboard</h1>
+                <p>
+                    Selamat datang, <b>{{ username }}</b>. Kelola fitur transfer file TCP
+                    dan streaming video UDP dari satu aplikasi.
+                </p>
+            </div>
+
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+        </div>
+
+        <div class="dashboard-stats-final">
+            <div class="stat-card-final">
+                <div class="stat-icon-final">TCP</div>
+                <div>
+                    <h3>{{ stats.total_files }}</h3>
+                    <p>Total File TCP</p>
+                </div>
+            </div>
+
+            <div class="stat-card-final">
+                <div class="stat-icon-final">UDP</div>
+                <div>
+                    <h3>{{ stats.total_videos }}</h3>
+                    <p>Total Video UDP</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-box dashboard-feature-box">
+            <div class="section-title">
+                <div>
+                    <h3>Menu Utama</h3>
+                    <p>Pilih fitur jaringan yang ingin digunakan.</p>
+                </div>
+
+                <span class="protocol-pill dark">TCP & UDP</span>
+            </div>
+
+            <div class="dashboard-action-grid">
+                <a href="{{ url_for('upload') }}" class="dashboard-action-card">
+                    <div class="action-icon tcp-icon">TCP</div>
+
+                    <div class="action-content">
+                        <h3>Upload File TCP</h3>
+                        <p>
+                            Mengirim file menggunakan socket TCP, menyimpan file ke server,
+                            dan mencatat metadata ke database MySQL.
+                        </p>
+                        <span>Buka Upload File →</span>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('stream') }}" class="dashboard-action-card">
+                    <div class="action-icon udp-icon">UDP</div>
+
+                    <div class="action-content">
+                        <h3>Streaming Video UDP</h3>
+                        <p>
+                            Upload video, kelola data video, lalu putar video menggunakan
+                            pengiriman frame melalui socket UDP.
+                        </p>
+                        <span>Buka Streaming Video →</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <footer class="app-footer">
+            <p>Network App — TCP File Transfer & UDP Video Streaming</p>
+            <span>Project Pemrograman Jaringan</span>
+        </footer>
+    </div>
+
+</body>
+</html>

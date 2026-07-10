@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Network App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="auth-final-page">
+
+        <div class="auth-final-left">
+            <span class="hero-badge">Pemrograman Jaringan</span>
+            <h1>Network App</h1>
+            <p>
+                Aplikasi web untuk demonstrasi transfer file menggunakan TCP
+                dan streaming video menggunakan UDP.
+            </p>
+
+            <div class="auth-feature-list">
+                <div>
+                    <b>TCP File Transfer</b>
+                    <span>Upload file melalui socket TCP.</span>
+                </div>
+
+                <div>
+                    <b>UDP Video Streaming</b>
+                    <span>Putar video menggunakan frame UDP.</span>
+                </div>
+
+                <div>
+                    <b>Email OTP</b>
+                    <span>Login diamankan dengan kode verifikasi email.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-final-card">
+            <div class="auth-final-brand">
+                <div class="brand-icon">PJ</div>
+                <div>
+                    <h2>Masuk Akun</h2>
+                    <p>Gunakan akun yang sudah terdaftar.</p>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert">
+                        {{ messages[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Masukkan username" required>
+
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Masukkan password" required>
+
+                <button type="submit">Login</button>
+            </form>
+
+            <div class="auth-final-footer">
+                <span>Belum punya akun?</span>
+                <a href="{{ url_for('register') }}">Daftar sekarang</a>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

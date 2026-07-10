@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Streaming UDP - Network App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="dashboard-container">
+
+        <div class="top-bar">
+            <div>
+                <h1>Streaming Video UDP</h1>
+                <p>User aktif: <b>{{ username }}</b></p>
+            </div>
+
+            <a href="{{ url_for('dashboard') }}" class="back-btn">Kembali</a>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Upload Video</h3>
+                <p>Video dipilih dari website dan disimpan ke server.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>Stream UDP</h3>
+                <p>Video dikirim frame-by-frame menggunakan socket UDP.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>Kelola Video</h3>
+                <p>Video dapat ditampilkan, diubah namanya, dan dihapus.</p>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="stream-final-layout">
+
+            <div class="feature-box stream-player-box" id="player">
+                <div class="section-title">
+                    <div>
+                        <h3>UDP Video Player</h3>
+                        {% if current_video_name %}
+                            <p>Sedang memutar: <b>{{ current_video_name }}</b></p>
+                        {% else %}
+                            <p>Pilih salah satu video dari daftar untuk mulai streaming.</p>
+                        {% endif %}
+                    </div>
+
+                    <span class="protocol-pill">UDP Socket</span>
+                </div>
+
+                <div class="video-box premium-video">
+                    {% if current_video_name %}
+                        <img src="{{ url_for('video_feed') }}" class="stream-video">
+                    {% else %}
+                        <div class="video-overlay">
+                            <h2>Belum Ada Video</h2>
+                            <p>Klik Stream Video pada video yang ingin diputar.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if current_video_name %}
+                    <form method="POST" action="{{ url_for('stop_stream') }}" class="stop-stream-form">
+                        <button type="submit" class="stop-btn">Stop Streaming</button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <div class="feature-box upload-video-box">
+                <div class="section-title">
+                    <div>
+                        <h3>Upload Video</h3>
+                        <p>Tambahkan video baru sebagai sumber streaming UDP.</p>
+                    </div>
+
+                    <span class="protocol-pill dark">Upload</span>
+                </div>
+
+                <form method="POST" action="{{ url_for('upload_video') }}" enctype="multipart/form-data">
+                    <label>Pilih Video</label>
+                    <input type="file" name="video" accept="video/*" required>
+
+                    <button type="submit" class="primary-action-btn">Upload Video</button>
+                </form>
+            </div>
+
+        </div>
+
+        <div class="feature-box" id="video-library">
+            <div class="section-title">
+                <div>
+                    <h3>Video Library</h3>
+                    <p>Daftar video yang tersedia untuk streaming UDP.</p>
+                </div>
+
+                
+            </div>
+
+            {% if videos %}
+                <div class="video-library-grid">
+                    {% for video in videos %}
+                        <div class="video-library-card">
+                            <div class="video-cover">
+                                <div class="play-symbol">▶</div>
+                            </div>
+
+                            <div class="video-library-info">
+                                <h4>{{ video.video_name }}</h4>
+                                <p>{{ video.formatted_size }}</p>
+                                <small>{{ video.uploaded_at }}</small>
+                            </div>
+
+                            <div class="video-library-actions">
+                                <form method="POST" action="{{ url_for('start_stream', video_id=video.id) }}">
+                                    <button type="submit" class="stream-btn">Putar Video</button>
+                                </form>
+
+                                <form 
+                                    method="POST" 
+                                    action="{{ url_for('update_video', video_id=video.id) }}" 
+                                    class="rename-form"
+                                >
+                                    <input 
+                                        type="text" 
+                                        name="video_name" 
+                                        value="{{ video.video_name }}" 
+                                        required
+                                    >
+                                    <button type="submit" class="edit-btn">Update</button>
+                                </form>
+
+                                <form method="POST" action="{{ url_for('delete_video', video_id=video.id) }}">
+                                    <button 
+                                        type="submit" 
+                                        class="delete-btn"
+                                        onclick="return confirm('Yakin ingin menghapus video ini?')"
+                                    >
+                                        Hapus Video
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+            <div class="empty-state final-empty">
+                <div class="empty-icon">🎬</div>
+                <h4>Belum Ada Video UDP</h4>
+                <p>Upload video pertama kamu untuk mulai menggunakan fitur streaming video UDP.</p>
+            </div>
+            {% endif %}
+        </div>
+        <footer class="app-footer">
+            <p>Network App — TCP File Transfer & UDP Video Streaming</p>
+            <span>Project Pemrograman Jaringan</span>
+        </footer>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload TCP - Network App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="dashboard-container">
+
+        <div class="top-bar">
+            <div>
+                <h1>Upload File TCP</h1>
+                <p>User aktif: <b>{{ username }}</b></p>
+            </div>
+
+            <a href="{{ url_for('dashboard') }}" class="back-btn">Kembali</a>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Pilih File</h3>
+                <p>User memilih file dari website.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>Kirim TCP</h3>
+                <p>File dikirim memakai socket TCP ke server.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>Simpan Data</h3>
+                <p>Metadata file dicatat ke database MySQL.</p>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="feature-box">
+            <div class="section-title">
+                <div>
+                    <h3>Form Upload File</h3>
+                    <p>Upload file dari website, lalu file dikirim ke TCP Server.</p>
+                </div>
+
+                <span class="protocol-pill">TCP Socket</span>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" class="upload-form">
+                <label>Pilih File</label>
+                <input type="file" name="file" required>
+
+                <button type="submit" class="primary-action-btn">Upload via TCP</button>
+            </form>
+        </div>
+
+        <div class="feature-box">
+            <div class="section-title">
+                <div>
+                    <h3>File TCP</h3>
+                    <p>Daftar file yang berhasil dikirim dan tersimpan di server.</p>
+                </div>
+
+                <span class="protocol-pill dark">CRUD File</span>
+            </div>
+
+            {% if upload_history %}
+                <div class="file-card-grid">
+                    {% for item in upload_history %}
+                        <div class="file-card">
+                            <div class="file-card-header">
+                                <div class="file-icon">FILE</div>
+
+                                <div class="file-title">
+                                    <h4>{{ item.filename }}</h4>
+                                    <p>{{ item.formatted_size }} • {{ item.file_type }}</p>
+                                </div>
+                            </div>
+
+                            <div class="file-meta">
+                                <p><b>Lokasi:</b> {{ item.file_path }}</p>
+                                <p><b>Upload:</b> {{ item.uploaded_at }}</p>
+                            </div>
+
+                            <div class="file-actions">
+                                <form 
+                                    method="POST" 
+                                    action="{{ url_for('update_tcp_file', file_id=item.id) }}"
+                                    class="rename-form"
+                                >
+                                    <input 
+                                        type="text" 
+                                        name="filename" 
+                                        value="{{ item.filename }}" 
+                                        required
+                                    >
+                                    <button type="submit" class="edit-btn">Update</button>
+                                </form>
+
+                                <form 
+                                    method="POST" 
+                                    action="{{ url_for('delete_tcp_file_route', file_id=item.id) }}"
+                                >
+                                    <button 
+                                        type="submit" 
+                                        class="delete-btn"
+                                        onclick="return confirm('Yakin ingin menghapus file ini?')"
+                                    >
+                                        Hapus File
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+            <div class="empty-state final-empty">
+                <div class="empty-icon">📁</div>
+                <h4>Belum Ada File TCP</h4>
+                <p>Upload file pertama kamu untuk mulai menggunakan fitur transfer file TCP.</p>
+            </div>
+            {% endif %}
+        </div>
+        <footer class="app-footer">
+            <p>Network App — TCP File Transfer & UDP Video Streaming</p>
+            <span>Project Pemrograman Jaringan</span>
+        </footer>
+    </div>
+
+</body>
+</html>
