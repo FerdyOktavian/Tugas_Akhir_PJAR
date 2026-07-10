@@ -1,103 +1,88 @@
+# Network App - TCP File Transfer & UDP Video Streaming
 
-````markdown
-# Network App — TCP File Transfer & UDP Video Streaming
+Network App adalah aplikasi web untuk mata kuliah Pemrograman Jaringan yang menerapkan konsep client-server. Aplikasi ini dibuat menggunakan Python Flask dan menggunakan beberapa protokol jaringan, yaitu HTTP, TCP, dan UDP.
 
-Network App adalah aplikasi web berbasis **Pemrograman Jaringan** yang menerapkan konsep **client-server** menggunakan beberapa protokol jaringan, yaitu **HTTP**, **TCP**, dan **UDP**.
-
-Aplikasi ini dibuat untuk memenuhi tugas mata kuliah Pemrograman Jaringan dengan fokus utama pada proses komunikasi data antar client dan server.
+Project ini memiliki dua fitur utama, yaitu transfer file menggunakan TCP dan streaming video menggunakan UDP. Selain itu, aplikasi juga dilengkapi dengan register, login, verifikasi OTP email, database MySQL, serta fitur CRUD untuk file dan video.
 
 ---
 
-## Deskripsi Singkat
+## Deskripsi Aplikasi
 
-Aplikasi ini memiliki dua fitur utama:
+Aplikasi ini dibuat untuk mendemonstrasikan proses komunikasi data antara client dan server pada pemrograman jaringan.
 
-1. **Upload File menggunakan TCP**
-   - User dapat mengupload file melalui website.
-   - File dikirim menggunakan socket TCP.
-   - File diterima oleh TCP Server dan disimpan pada folder server.
-   - Metadata file seperti nama file, ukuran, tipe file, dan lokasi file disimpan ke database MySQL.
+Pada aplikasi ini, user dapat melakukan register dan login terlebih dahulu. Setelah login, user akan menerima kode OTP melalui email sebagai proses verifikasi. Setelah berhasil masuk ke dashboard, user dapat menggunakan dua fitur utama:
 
-2. **Streaming Video menggunakan UDP**
-   - User dapat mengupload video melalui website.
-   - Video disimpan pada server dan datanya dicatat ke database.
-   - User dapat memilih video untuk diputar.
-   - Video dikirim frame-by-frame menggunakan protokol UDP dan ditampilkan pada halaman website.
+1. Upload File TCP
+2. Streaming Video UDP
 
-Selain itu, aplikasi juga memiliki fitur:
-- Register akun
-- Login
-- Verifikasi OTP melalui email
-- Dashboard statistik
-- CRUD file TCP
-- CRUD video UDP
-- Tampilan web modern dan responsif
+Fitur Upload File TCP digunakan untuk mengirim file dari website ke server menggunakan socket TCP. File yang berhasil dikirim akan disimpan pada folder server dan metadata file akan disimpan ke database MySQL.
+
+Fitur Streaming Video UDP digunakan untuk mengupload video, memilih video yang ingin diputar, lalu video tersebut akan dikirim frame-by-frame menggunakan protokol UDP dan ditampilkan pada halaman website.
 
 ---
 
 ## Tujuan Project
 
-Project ini dibuat untuk memahami dan mengimplementasikan konsep:
+Tujuan dari pembuatan aplikasi ini adalah:
 
-- Komunikasi jaringan berbasis client-server
-- Pengiriman data melalui protokol TCP
-- Pengiriman data melalui protokol UDP
-- Komunikasi web menggunakan HTTP
-- Manajemen koneksi socket
-- Pengolahan file dan video
-- Penyimpanan metadata menggunakan database MySQL
-- Error handling pada aplikasi jaringan
+- Memahami konsep komunikasi client-server.
+- Mengimplementasikan komunikasi data menggunakan TCP, UDP, dan HTTP.
+- Mengirim dan menerima data melalui jaringan.
+- Mengimplementasikan socket programming pada Python.
+- Menangani proses upload file dan streaming video.
+- Menghubungkan aplikasi jaringan dengan database MySQL.
+- Melakukan pengujian komunikasi antara client dan server.
 
 ---
 
 ## Teknologi yang Digunakan
 
-| Teknologi | Fungsi |
+| Teknologi | Keterangan |
 |---|---|
 | Python | Bahasa pemrograman utama |
 | Flask | Framework web backend |
-| HTML | Struktur halaman web |
-| CSS | Tampilan antarmuka aplikasi |
-| MySQL | Database aplikasi |
-| PyMySQL | Koneksi Python ke MySQL |
-| OpenCV | Membaca dan memproses frame video |
-| Socket Programming | Implementasi TCP dan UDP |
-| SMTP Gmail | Mengirim kode OTP ke email |
-| XAMPP | Menjalankan MySQL secara lokal |
-| Git & GitHub | Version control dan repository |
+| HTML | Struktur halaman website |
+| CSS | Tampilan antarmuka website |
+| MySQL | Database untuk menyimpan data user, file, dan video |
+| PyMySQL | Library koneksi Python ke MySQL |
+| OpenCV | Library untuk membaca dan memproses video |
+| Socket Programming | Digunakan untuk komunikasi TCP dan UDP |
+| SMTP Gmail | Digunakan untuk mengirim kode OTP ke email |
+| XAMPP | Digunakan untuk menjalankan MySQL secara lokal |
+| GitHub | Digunakan untuk menyimpan source code project |
 
 ---
 
-## Protokol yang Digunakan
+## Protokol Jaringan yang Digunakan
 
 ### 1. HTTP
 
-HTTP digunakan untuk komunikasi antara browser client dengan Flask web server.
+HTTP digunakan untuk komunikasi antara browser client dan Flask server.
 
-Contoh:
+Contoh penggunaan HTTP pada aplikasi:
+
 - Membuka halaman login
 - Register akun
-- Mengupload file dari form website
-- Mengupload video dari form website
+- Mengirim form login
+- Mengupload file dari website
+- Mengupload video dari website
 - Menampilkan dashboard
+- Menampilkan halaman upload TCP dan streaming UDP
 
 ---
 
 ### 2. TCP
 
-TCP digunakan pada fitur **File Transfer**.
+TCP digunakan pada fitur upload file.
 
-Alasan menggunakan TCP:
-- TCP menjamin data sampai secara utuh.
-- Data dikirim secara berurutan.
-- Cocok untuk pengiriman file karena file tidak boleh rusak atau hilang sebagian.
+TCP dipilih karena proses pengiriman file membutuhkan data yang utuh, berurutan, dan reliable. Jika ada bagian file yang hilang, file dapat rusak atau tidak bisa dibuka. Oleh karena itu, TCP cocok digunakan untuk transfer file.
 
-Alur TCP pada aplikasi:
+Alur komunikasi TCP pada aplikasi:
 
 ```text
-User upload file dari browser
+User memilih file dari website
         ↓
-Flask menerima file
+Flask menerima file dari form upload
         ↓
 Flask mengirim file ke TCP Server menggunakan socket TCP
         ↓
@@ -105,22 +90,18 @@ TCP Server menerima file
         ↓
 File disimpan ke folder tcp/received_files/
         ↓
-Metadata file disimpan ke MySQL
-````
+Metadata file disimpan ke database MySQL
+```
 
 ---
 
 ### 3. UDP
 
-UDP digunakan pada fitur **Video Streaming**.
+UDP digunakan pada fitur streaming video.
 
-Alasan menggunakan UDP:
+UDP dipilih karena lebih ringan dan cepat untuk pengiriman data real-time. Pada streaming video, jika ada satu atau beberapa frame yang hilang, video masih tetap dapat berjalan.
 
-* UDP lebih ringan dan cepat.
-* Cocok untuk data real-time seperti video streaming.
-* Jika ada frame yang hilang, video masih tetap bisa berjalan.
-
-Alur UDP pada aplikasi:
+Alur komunikasi UDP pada aplikasi:
 
 ```text
 User upload video dari website
@@ -131,9 +112,11 @@ User memilih video untuk diputar
         ↓
 UDP Sender membaca video frame-by-frame
         ↓
-Frame dikirim ke UDP Receiver
+Frame video dikirim menggunakan UDP
         ↓
-Flask menampilkan frame video ke website
+UDP Receiver menerima frame
+        ↓
+Frame ditampilkan pada halaman website
 ```
 
 ---
@@ -142,53 +125,44 @@ Flask menampilkan frame video ke website
 
 ### 1. Register Akun
 
-User dapat membuat akun baru dengan mengisi:
-
-* Username
-* Email
-* Password
-* Konfirmasi password
-
-Data akun disimpan ke database MySQL.
+User dapat membuat akun baru dengan mengisi username, email, password, dan konfirmasi password. Data user akan disimpan ke database MySQL.
 
 ---
 
-### 2. Login dan OTP Email
+### 2. Login dan Verifikasi OTP
 
-Setelah login menggunakan username dan password, sistem akan mengirimkan kode OTP ke email user.
-
-User harus memasukkan OTP dengan benar agar dapat masuk ke dashboard.
+User dapat login menggunakan username dan password. Setelah login berhasil, sistem akan mengirimkan kode OTP ke email user. User harus memasukkan OTP yang benar agar dapat masuk ke dashboard.
 
 ---
 
 ### 3. Dashboard
 
-Dashboard menampilkan:
+Dashboard menampilkan informasi jumlah file TCP dan jumlah video UDP yang sudah diupload oleh user.
 
-* Total file TCP yang sudah diupload
-* Total video UDP yang sudah diupload
-* Menu menuju fitur Upload File TCP
-* Menu menuju fitur Streaming Video UDP
+Dashboard juga menyediakan menu untuk mengakses:
+
+- Upload File TCP
+- Streaming Video UDP
 
 ---
 
 ### 4. Upload File TCP
 
-Pada fitur ini user dapat:
+Pada fitur Upload File TCP, user dapat:
 
-* Mengupload file
-* Mengirim file menggunakan TCP
-* Melihat daftar file yang sudah diupload
-* Mengubah nama file
-* Menghapus file
+- Mengupload file
+- Mengirim file menggunakan TCP
+- Melihat daftar file yang sudah diupload
+- Mengubah nama file
+- Menghapus file
 
-File fisik disimpan pada folder:
+File fisik disimpan di folder:
 
 ```text
 tcp/received_files/
 ```
 
-Metadata file disimpan pada tabel:
+Metadata file disimpan di tabel:
 
 ```text
 upload_history
@@ -198,22 +172,22 @@ upload_history
 
 ### 5. Streaming Video UDP
 
-Pada fitur ini user dapat:
+Pada fitur Streaming Video UDP, user dapat:
 
-* Mengupload video
-* Melihat daftar video
-* Mengubah nama video
-* Menghapus video
-* Memutar video menggunakan UDP streaming
-* Menghentikan video yang sedang diputar
+- Mengupload video
+- Melihat daftar video
+- Mengubah nama video
+- Menghapus video
+- Memutar video menggunakan UDP
+- Menghentikan video yang sedang diputar
 
-Video fisik disimpan pada folder:
+Video fisik disimpan di folder:
 
 ```text
 udp/uploaded_videos/
 ```
 
-Metadata video disimpan pada tabel:
+Metadata video disimpan di tabel:
 
 ```text
 video_files
@@ -255,9 +229,7 @@ tugas-akhir/
 └── uploads/
 ```
 
-Catatan:
-
-Folder berikut tidak perlu dimasukkan ke GitHub karena berisi file hasil upload user:
+Folder berikut tidak perlu diupload ke GitHub karena berisi file hasil upload user:
 
 ```text
 uploads/
@@ -271,15 +243,15 @@ udp/uploaded_videos/
 
 Database yang digunakan adalah MySQL.
 
-Nama database:
+Nama database yang digunakan:
 
 ```sql
 pjar
 ```
 
-### Tabel `users`
+### Tabel users
 
-Digunakan untuk menyimpan data akun user.
+Tabel `users` digunakan untuk menyimpan data akun user.
 
 ```sql
 CREATE TABLE users (
@@ -293,9 +265,9 @@ CREATE TABLE users (
 
 ---
 
-### Tabel `upload_history`
+### Tabel upload_history
 
-Digunakan untuk menyimpan metadata file TCP.
+Tabel `upload_history` digunakan untuk menyimpan metadata file yang dikirim menggunakan TCP.
 
 ```sql
 CREATE TABLE upload_history (
@@ -312,9 +284,9 @@ CREATE TABLE upload_history (
 
 ---
 
-### Tabel `video_files`
+### Tabel video_files
 
-Digunakan untuk menyimpan metadata video UDP.
+Tabel `video_files` digunakan untuk menyimpan metadata video yang digunakan pada fitur UDP streaming.
 
 ```sql
 CREATE TABLE video_files (
@@ -330,7 +302,7 @@ CREATE TABLE video_files (
 
 ---
 
-## Cara Instalasi dan Menjalankan Project
+## Cara Menjalankan Aplikasi
 
 ### 1. Clone Repository
 
@@ -355,13 +327,13 @@ venv\Scripts\activate
 
 ---
 
-### 3. Install Library
+### 3. Install Dependency
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Jika belum memiliki `requirements.txt`, install manual:
+Jika belum ada file `requirements.txt`, install library berikut secara manual:
 
 ```bash
 pip install flask pymysql opencv-python python-dotenv werkzeug
@@ -369,29 +341,29 @@ pip install flask pymysql opencv-python python-dotenv werkzeug
 
 ---
 
-### 4. Buat Database MySQL
+### 4. Jalankan MySQL
 
-Jalankan MySQL melalui XAMPP, lalu buka:
+Jalankan MySQL melalui XAMPP, lalu buka phpMyAdmin:
 
 ```text
 http://localhost/phpmyadmin
 ```
 
-Buat database:
+Buat database dengan nama:
 
 ```sql
 CREATE DATABASE pjar;
 ```
 
-Kemudian buat tabel `users`, `upload_history`, dan `video_files` sesuai SQL di bagian Database.
+Setelah itu buat tabel `users`, `upload_history`, dan `video_files` sesuai struktur database yang sudah dijelaskan.
 
 ---
 
-### 5. Buat File `.env`
+### 5. Buat File .env
 
 Buat file `.env` di folder utama project.
 
-Contoh isi:
+Contoh isi file `.env`:
 
 ```env
 EMAIL_ADDRESS=your_email@gmail.com
@@ -405,8 +377,9 @@ DB_NAME=pjar
 
 Catatan:
 
-* `EMAIL_PASSWORD` menggunakan Gmail App Password, bukan password Gmail biasa.
-* File `.env` tidak boleh diupload ke GitHub.
+- `EMAIL_PASSWORD` menggunakan Gmail App Password.
+- Jangan menggunakan password Gmail biasa.
+- File `.env` tidak perlu diupload ke GitHub.
 
 ---
 
@@ -416,7 +389,7 @@ Catatan:
 python app.py
 ```
 
-Buka browser:
+Setelah aplikasi berjalan, buka browser:
 
 ```text
 http://127.0.0.1:5000
@@ -424,73 +397,53 @@ http://127.0.0.1:5000
 
 ---
 
-## Cara Penggunaan
+## Cara Menggunakan Aplikasi
 
 ### 1. Register
 
-Buka halaman register, lalu buat akun baru menggunakan email aktif.
+User membuat akun baru dengan memasukkan username, email, password, dan konfirmasi password.
 
 ---
 
 ### 2. Login
 
-Login menggunakan username dan password yang sudah dibuat.
+User login menggunakan username dan password yang sudah terdaftar.
 
 ---
 
 ### 3. Verifikasi OTP
 
-Masukkan kode OTP yang dikirim ke email.
+Sistem mengirimkan kode OTP ke email user. User memasukkan kode OTP tersebut untuk masuk ke dashboard.
 
 ---
 
 ### 4. Upload File TCP
 
-Masuk ke menu **Upload File TCP**, pilih file, lalu klik upload.
-
-File akan dikirim menggunakan TCP dan disimpan di server.
+User masuk ke menu Upload File TCP, memilih file, lalu menekan tombol upload. File akan dikirim menggunakan TCP dan disimpan di server.
 
 ---
 
 ### 5. Streaming Video UDP
 
-Masuk ke menu **Streaming Video UDP**, upload video, lalu klik **Putar Video**.
-
-Video akan diproses frame-by-frame dan dikirim menggunakan UDP.
+User masuk ke menu Streaming Video UDP, mengupload video, lalu menekan tombol Putar Video. Video akan dikirim frame-by-frame menggunakan UDP dan ditampilkan pada website.
 
 ---
 
 ## Mekanisme Client-Server
 
-Aplikasi ini menerapkan beberapa bentuk komunikasi client-server:
+Aplikasi ini memiliki beberapa proses komunikasi client-server.
 
-### Browser Client ke Flask Server
+### Browser Client dan Flask Server
 
-Browser mengirim request ke Flask menggunakan HTTP.
+Browser berperan sebagai client yang mengirim request HTTP ke Flask server. Flask server memproses request dan mengembalikan response berupa halaman web.
 
-Contoh:
+### Flask dan TCP Server
 
-* Login
-* Register
-* Upload file
-* Upload video
-* Membuka dashboard
+Pada fitur upload file, Flask mengirim file ke TCP Server menggunakan socket TCP. TCP Server menerima file dan menyimpannya di folder server.
 
----
+### UDP Sender dan UDP Receiver
 
-### Flask sebagai TCP Client ke TCP Server
-
-Saat user mengupload file, Flask bertindak sebagai client yang mengirim file ke TCP Server.
-
-TCP Server menerima file dan menyimpannya pada folder `tcp/received_files/`.
-
----
-
-### UDP Sender ke UDP Receiver
-
-Saat video diputar, UDP Sender membaca video frame-by-frame dan mengirimkan frame ke UDP Receiver.
-
-UDP Receiver menerima frame dan Flask menampilkannya ke halaman website.
+Pada fitur streaming video, UDP Sender membaca video frame-by-frame lalu mengirim frame ke UDP Receiver. Frame yang diterima akan ditampilkan pada halaman website.
 
 ---
 
@@ -498,55 +451,61 @@ UDP Receiver menerima frame dan Flask menampilkannya ke halaman website.
 
 Aplikasi menangani beberapa kemungkinan error, seperti:
 
-* Username atau password salah
-* OTP salah
-* Email gagal dikirim
-* File belum dipilih
-* Video belum dipilih
-* Format video tidak didukung
-* TCP Server gagal menerima file
-* Video tidak ditemukan
-* Database gagal terhubung
+- Username atau password salah
+- OTP salah
+- Email gagal dikirim
+- File belum dipilih
+- Video belum dipilih
+- Format video tidak didukung
+- File gagal dikirim melalui TCP
+- Video tidak ditemukan
+- Database gagal terhubung
+- File atau video gagal dihapus
 
-Error akan ditampilkan melalui pesan pada halaman web.
+Pesan error akan ditampilkan pada halaman website agar user mengetahui masalah yang terjadi.
 
 ---
 
 ## Kelebihan Aplikasi
 
-* Menggunakan lebih dari satu protokol jaringan: HTTP, TCP, dan UDP.
-* Sudah berbasis web sehingga mudah digunakan.
-* Memiliki sistem login dan verifikasi OTP.
-* Metadata file dan video disimpan ke database MySQL.
-* File dan video dapat dikelola dengan fitur CRUD.
-* Tampilan antarmuka dibuat modern dan responsif.
-* Cocok untuk demonstrasi konsep client-server.
+Beberapa kelebihan aplikasi ini adalah:
+
+- Menggunakan konsep client-server.
+- Menggunakan lebih dari satu protokol jaringan, yaitu HTTP, TCP, dan UDP.
+- Memiliki fitur transfer file menggunakan TCP.
+- Memiliki fitur streaming video menggunakan UDP.
+- Memiliki sistem register, login, dan OTP email.
+- Menggunakan database MySQL untuk menyimpan data.
+- Memiliki fitur CRUD untuk file dan video.
+- Tampilan aplikasi dibuat berbasis web sehingga mudah digunakan.
 
 ---
 
 ## Kekurangan Aplikasi
 
-* UDP streaming hanya mengirim frame video tanpa audio.
-* Aplikasi masih berjalan pada server lokal.
-* Belum menggunakan HTTPS.
-* Belum ada sistem role admin dan user.
-* Belum ada pembatasan ukuran upload yang kompleks.
-* Belum menggunakan cloud storage untuk menyimpan file besar.
+Beberapa kekurangan aplikasi ini adalah:
+
+- UDP streaming hanya mengirim frame video tanpa audio.
+- Aplikasi masih berjalan pada server lokal.
+- Belum menggunakan HTTPS.
+- Belum ada fitur role admin dan user.
+- Penyimpanan file masih menggunakan folder server lokal.
+- Belum menggunakan cloud storage untuk file berukuran besar.
 
 ---
 
 ## Pengembangan Selanjutnya
 
-Beberapa pengembangan yang dapat dilakukan:
+Aplikasi ini masih dapat dikembangkan dengan beberapa fitur tambahan, seperti:
 
-* Menambahkan HTTPS agar komunikasi lebih aman.
-* Menambahkan autentikasi berbasis role.
-* Menambahkan validasi ukuran dan tipe file yang lebih ketat.
-* Menggunakan cloud storage untuk menyimpan file dan video.
-* Menambahkan audio streaming pada fitur UDP.
-* Menambahkan sistem monitoring koneksi client-server.
-* Menambahkan deployment ke server publik menggunakan Cloudflare DNS.
-* Menggunakan database production seperti MySQL Server pada VPS.
+- Menambahkan HTTPS agar komunikasi lebih aman.
+- Menambahkan role admin dan user.
+- Menambahkan batas ukuran upload file dan video.
+- Menambahkan cloud storage untuk menyimpan file dan video.
+- Menambahkan fitur audio pada UDP streaming.
+- Menambahkan monitoring koneksi client-server.
+- Melakukan deployment ke server publik.
+- Menghubungkan domain menggunakan Cloudflare DNS.
 
 ---
 
@@ -554,19 +513,14 @@ Beberapa pengembangan yang dapat dilakukan:
 
 Network App merupakan aplikasi pemrograman jaringan berbasis web yang menerapkan konsep client-server dengan menggunakan protokol HTTP, TCP, dan UDP.
 
-TCP digunakan untuk transfer file karena membutuhkan pengiriman data yang reliable, utuh, dan berurutan. UDP digunakan untuk streaming video karena lebih cepat dan cocok untuk pengiriman data real-time. HTTP digunakan sebagai komunikasi antara browser dan server Flask.
+TCP digunakan pada fitur transfer file karena membutuhkan pengiriman data yang reliable, utuh, dan berurutan. UDP digunakan pada fitur streaming video karena lebih ringan dan cocok untuk pengiriman data real-time. HTTP digunakan untuk komunikasi antara browser dan Flask server.
 
-Dengan aplikasi ini, konsep dasar pemrograman jaringan seperti socket programming, client-server, pengiriman data, penerimaan data, database, dan error handling dapat diimplementasikan secara nyata dalam satu sistem aplikasi.
+Dengan aplikasi ini, proses komunikasi jaringan seperti pengiriman data, penerimaan data, socket programming, database, dan error handling dapat diimplementasikan dalam satu sistem aplikasi.
 
 ---
 
 ## Author
 
-Nama: Muhammad Ferdi
-Mata Kuliah: Pemrograman Jaringan
-Kelas : 4IA07
-NPM   : 51422055
-Project: Network App — TCP File Transfer & UDP Video Streaming
-
-````
-
+Nama: Muhammad Ferdi  
+Mata Kuliah: Pemrograman Jaringan  
+Project: Network App - TCP File Transfer & UDP Video Streaming
