@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Streaming UDP - Network App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -24,13 +26,13 @@
             </div>
 
             <div class="info-card">
-                <h3>Stream UDP</h3>
-                <p>Video dikirim frame-by-frame menggunakan socket UDP.</p>
+                <h3>Komunikasi UDP</h3>
+                <p>Saat video dipilih, sender mengirim frame ke receiver melalui UDP.</p>
             </div>
 
             <div class="info-card">
                 <h3>Kelola Video</h3>
-                <p>Video dapat ditampilkan, diubah namanya, dan dihapus.</p>
+                <p>Video dapat diputar, diubah namanya, dan dihapus.</p>
             </div>
         </div>
 
@@ -47,29 +49,51 @@
             <div class="feature-box stream-player-box" id="player">
                 <div class="section-title">
                     <div>
-                        <h3>UDP Video Player</h3>
-                        {% if current_video_name %}
-                            <p>Sedang memutar: <b>{{ current_video_name }}</b></p>
+                        <h3>Video Player</h3>
+
+                        {% if active_video %}
+                            <p>Sedang dipilih: <b>{{ active_video.video_name }}</b></p>
                         {% else %}
-                            <p>Pilih salah satu video dari daftar untuk mulai streaming.</p>
+                            <p>Pilih salah satu video dari daftar untuk mulai memutar.</p>
                         {% endif %}
                     </div>
 
-                    <span class="protocol-pill">UDP Socket</span>
+                    <span class="protocol-pill">UDP Aktif</span>
                 </div>
 
                 <div class="video-box premium-video">
-                    {% if current_video_name %}
-                        <img src="{{ url_for('video_feed') }}" class="stream-video">
+                    {% if active_video %}
+                        <div class="video-player-container">
+                            <video
+                                id="videoPlayer"
+                                class="video-player"
+                                controls
+                                preload="metadata"
+                                playsinline
+                            >
+                                <source src="{{ url_for('video_file', video_id=active_video.id) }}">
+                                Browser tidak mendukung pemutaran video.
+                            </video>
+
+                            <div class="video-player-caption">
+                                <h4>{{ active_video.video_name }}</h4>
+                                <p>
+                                    Gunakan kontrol bawaan untuk play, pause, volume,
+                                    mengatur durasi, dan fullscreen.
+                                </p>
+                            </div>
+                        </div>
                     {% else %}
-                        <div class="video-overlay">
-                            <h2>Belum Ada Video</h2>
-                            <p>Klik Stream Video pada video yang ingin diputar.</p>
+                        <div class="empty-player">
+                            <div>
+                                <h2>Belum Ada Video Dipilih</h2>
+                                <p>Klik tombol Putar Video pada daftar video di bawah.</p>
+                            </div>
                         </div>
                     {% endif %}
                 </div>
 
-                {% if current_video_name %}
+                {% if active_video %}
                     <form method="POST" action="{{ url_for('stop_stream') }}" class="stop-stream-form">
                         <button type="submit" class="stop-btn">Stop Streaming</button>
                     </form>
@@ -80,15 +104,26 @@
                 <div class="section-title">
                     <div>
                         <h3>Upload Video</h3>
-                        <p>Tambahkan video baru sebagai sumber streaming UDP.</p>
+                        <p>Tambahkan video baru sebagai sumber streaming.</p>
                     </div>
 
                     <span class="protocol-pill dark">Upload</span>
                 </div>
 
                 <form method="POST" action="{{ url_for('upload_video') }}" enctype="multipart/form-data">
-                    <label>Pilih Video</label>
-                    <input type="file" name="video" accept="video/*" required>
+                    <label for="video">Pilih Video</label>
+                    <input
+                        id="video"
+                        type="file"
+                        name="video"
+                        accept="video/*"
+                        required
+                    >
+
+                    <p class="upload-note">
+                        Format MP4 paling disarankan agar gambar, suara, dan kontrol player
+                        dapat berjalan dengan baik di browser.
+                    </p>
 
                     <button type="submit" class="primary-action-btn">Upload Video</button>
                 </form>
@@ -100,10 +135,8 @@
             <div class="section-title">
                 <div>
                     <h3>Video Library</h3>
-                    <p>Daftar video yang tersedia untuk streaming UDP.</p>
+                    <p>Daftar video milik akun yang sedang login.</p>
                 </div>
-
-                
             </div>
 
             {% if videos %}
@@ -125,23 +158,24 @@
                                     <button type="submit" class="stream-btn">Putar Video</button>
                                 </form>
 
-                                <form 
-                                    method="POST" 
-                                    action="{{ url_for('update_video', video_id=video.id) }}" 
+                                <form
+                                    method="POST"
+                                    action="{{ url_for('update_video', video_id=video.id) }}"
                                     class="rename-form"
                                 >
-                                    <input 
-                                        type="text" 
-                                        name="video_name" 
-                                        value="{{ video.video_name }}" 
+                                    <input
+                                        type="text"
+                                        name="video_name"
+                                        value="{{ video.video_name }}"
+                                        aria-label="Nama video"
                                         required
                                     >
                                     <button type="submit" class="edit-btn">Update</button>
                                 </form>
 
                                 <form method="POST" action="{{ url_for('delete_video', video_id=video.id) }}">
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         class="delete-btn"
                                         onclick="return confirm('Yakin ingin menghapus video ini?')"
                                     >
@@ -153,17 +187,19 @@
                     {% endfor %}
                 </div>
             {% else %}
-            <div class="empty-state final-empty">
-                <div class="empty-icon">🎬</div>
-                <h4>Belum Ada Video UDP</h4>
-                <p>Upload video pertama kamu untuk mulai menggunakan fitur streaming video UDP.</p>
-            </div>
+                <div class="empty-state final-empty">
+                    <div class="empty-icon">🎬</div>
+                    <h4>Belum Ada Video UDP</h4>
+                    <p>Upload video pertama untuk mulai menggunakan fitur streaming video.</p>
+                </div>
             {% endif %}
         </div>
+
         <footer class="app-footer">
             <p>Network App — TCP File Transfer & UDP Video Streaming</p>
             <span>Project Pemrograman Jaringan</span>
         </footer>
+
     </div>
 
 </body>

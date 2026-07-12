@@ -1,9 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, Response
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, abort
 from db import get_db_connection
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
-
 import random
 import smtplib
 from email.message import EmailMessage
@@ -11,7 +10,6 @@ import socket
 import os
 import struct
 import threading
-import time
 import subprocess
 import sys
 import uuid
@@ -19,14 +17,14 @@ import uuid
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "secret_key_tugas_akhir"
+app.secret_key = os.getenv("SECRET_KEY", "secret_key_tugas_akhir")
 
 
 # =========================
 # KONFIGURASI EMAIL
 # =========================
-EMAIL_ADDRESS = os.getenv("muhammadferdisp33@gmail.com")
-EMAIL_PASSWORD = os.getenv("vwmp yvlz mxap deuj")
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 # =========================
 # KONFIGURASI TCP
@@ -47,9 +45,6 @@ ALLOWED_VIDEO_EXTENSIONS = {"mp4", "avi", "mov", "mkv"}
 UDP_HOST = "0.0.0.0"
 UDP_PORT = 7000
 
-latest_frame = None
-frame_lock = threading.Lock()
-
 udp_process = None
 # =========================
 # BUAT FOLDER UPLOAD JIKA BELUM ADA
@@ -60,6 +55,16 @@ if not os.path.exists(TCP_RECEIVED_FOLDER):
     os.makedirs(TCP_RECEIVED_FOLDER)
 if not os.path.exists(VIDEO_UPLOAD_FOLDER):
     os.makedirs(VIDEO_UPLOAD_FOLDER)
+
+
+def resolve_project_path(path):
+    """Mengubah path relatif dari database menjadi path absolut project."""
+    if os.path.isabs(path):
+        return os.path.normpath(path)
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.normpath(os.path.join(base_dir, path))
+
 
 # =========================
 # ROUTE UTAMA
@@ -614,23 +619,31 @@ def delete_tcp_file_route(file_id):
 # UDP RECEIVER
 # =========================
 def start_udp_receiver():
-    global latest_frame
-
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.bind((UDP_HOST, UDP_PORT))
 
-    print(f"[UDP RECEIVER RUNNING] {UDP_HOST}:{UDP_PORT}")
+    try:
+        udp_socket.bind((UDP_HOST, UDP_PORT))
+        print(f"[UDP RECEIVER RUNNING] {UDP_HOST}:{UDP_PORT}")
 
-    while True:
-        try:
+        frame_count = 0
+
+        while True:
             data, address = udp_socket.recvfrom(65535)
+            frame_count += 1
 
-            with frame_lock:
-                latest_frame = data
+            if frame_count == 1:
+                print(f"[UDP RECEIVER] Paket pertama diterima dari {address}")
 
-        except Exception as error:
-            print("[UDP ERROR]", error)
-            break
+    except OSError as error:
+        print("[UDP RECEIVER WARNING]", error)
+        print("Kemungkinan UDP Receiver sudah berjalan di port yang sama.")
+
+    except Exception as error:
+        print("[UDP RECEIVER ERROR]", error)
+
+    finally:
+        udp_socket.close()
+
 
 def allowed_video_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
@@ -708,7 +721,7 @@ def delete_video_file(video_id, user_id):
     if not video:
         return False
 
-    video_path = video["video_path"]
+    video_path = resolve_project_path(video["video_path"])
 
     if os.path.exists(video_path):
         os.remove(video_path)
@@ -727,22 +740,8 @@ def delete_video_file(video_id, user_id):
 
     return True
 
-def pause_udp_sender():
-    global udp_process
-
-    if udp_process and udp_process.poll() is None:
-        udp_process.terminate()
-
-        try:
-            udp_process.wait(timeout=3)
-        except subprocess.TimeoutExpired:
-            udp_process.kill()
-
-    udp_process = None
-
 def stop_udp_sender():
     global udp_process
-    global latest_frame
 
     if udp_process and udp_process.poll() is None:
         udp_process.terminate()
@@ -753,9 +752,6 @@ def stop_udp_sender():
             udp_process.kill()
 
     udp_process = None
-
-    with frame_lock:
-        latest_frame = None
 
 
 def start_udp_sender(video_path):
@@ -763,35 +759,52 @@ def start_udp_sender(video_path):
 
     stop_udp_sender()
 
-    sender_script = os.path.abspath(
-        os.path.join("udp", "udp_sender.py")
-    )
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    sender_script = os.path.join(base_dir, "udp", "udp_sender.py")
+    video_path_abs = resolve_project_path(video_path)
 
-    video_path_abs = os.path.abspath(video_path)
+    if not os.path.exists(sender_script):
+        raise FileNotFoundError("File udp_sender.py tidak ditemukan")
+
+    if not os.path.exists(video_path_abs):
+        raise FileNotFoundError("File video tidak ditemukan di folder uploaded_videos")
 
     udp_process = subprocess.Popen(
-        [sys.executable, sender_script, video_path_abs]
+        [sys.executable, sender_script, video_path_abs],
+        cwd=base_dir
     )
+
+
 # =========================
 # ROUTE STREAM
 # =========================
 @app.route("/stream")
 def stream():
-    if "username" not in session:
-        return redirect(url_for("login"))
-
     if "user_id" not in session:
-        session.clear()
         return redirect(url_for("login"))
 
     videos = get_video_files(session["user_id"])
+    active_video = None
+    current_video_id = session.get("current_video_id")
+
+    if current_video_id:
+        active_video = next(
+            (video for video in videos if video["id"] == current_video_id),
+            None
+        )
+
+        if active_video is None:
+            stop_udp_sender()
+            session.pop("current_video_id", None)
+            session.pop("current_video_name", None)
 
     return render_template(
         "stream.html",
         username=session["username"],
         videos=videos,
-        current_video_name=session.get("current_video_name")
+        active_video=active_video
     )
+
 
 @app.route("/upload_video", methods=["POST"])
 def upload_video():
@@ -879,72 +892,42 @@ def delete_video(video_id):
 
 @app.route("/start_stream/<int:video_id>", methods=["POST"])
 def start_stream(video_id):
-    if "username" not in session:
+    if "user_id" not in session:
         return redirect(url_for("login"))
 
     video = get_video_by_id(video_id, session["user_id"])
 
     if not video:
         flash("Video tidak ditemukan")
-        return redirect(url_for("stream"))
+        return redirect(url_for("stream") + "#video-library")
+
+    video_path = resolve_project_path(video["video_path"])
+
+    if not os.path.exists(video_path):
+        flash("File video tidak ditemukan di folder uploaded_videos")
+        return redirect(url_for("stream") + "#video-library")
 
     try:
-        start_udp_sender(video["video_path"])
+        # Proses sender UDP tetap dijalankan untuk komunikasi UDP.
+        start_udp_sender(video_path)
 
+        # ID video disimpan agar player HTML5 dapat menampilkan video
+        # lengkap dengan play, pause, suara, durasi, dan fullscreen.
         session["current_video_id"] = video["id"]
         session["current_video_name"] = video["video_name"]
 
-
-        flash(f"Streaming dimulai: {video['video_name']}")
+        flash(f"Video siap diputar: {video['video_name']}")
 
     except Exception as error:
-        flash(f"Gagal memulai streaming: {error}")
-        print("[START STREAM ERROR]", error)
+        flash(f"Gagal memulai video: {error}")
+        print("[START STREAM ERROR]", repr(error))
 
     return redirect(url_for("stream") + "#player")
 
-@app.route("/pause_stream", methods=["POST"])
-def pause_stream():
-    if "username" not in session:
-        return redirect(url_for("login"))
-
-    pause_udp_sender()
-
-
-    flash("Streaming dijeda")
-    return redirect(url_for("stream"))
-
-@app.route("/resume_stream", methods=["POST"])
-def resume_stream():
-    if "username" not in session:
-        return redirect(url_for("login"))
-
-    video_id = session.get("current_video_id")
-
-    if not video_id:
-        flash("Belum ada video yang sedang dipilih")
-        return redirect(url_for("stream"))
-
-    video = get_video_by_id(video_id, session["user_id"])
-
-    if not video:
-        flash("Video tidak ditemukan")
-        return redirect(url_for("stream"))
-
-    try:
-        start_udp_sender(video["video_path"])
-
-        flash(f"Streaming dilanjutkan: {video['video_name']}")
-
-    except Exception as error:
-        flash(f"Gagal melanjutkan streaming: {error}")
-        print("[RESUME STREAM ERROR]", error)
-
-    return redirect(url_for("stream"))
 
 @app.route("/stop_stream", methods=["POST"])
 def stop_stream():
-    if "username" not in session:
+    if "user_id" not in session:
         return redirect(url_for("login"))
 
     stop_udp_sender()
@@ -952,37 +935,31 @@ def stop_stream():
     session.pop("current_video_id", None)
     session.pop("current_video_name", None)
 
-    flash("Streaming dihentikan")
+    flash("Pemutaran video dihentikan")
     return redirect(url_for("stream") + "#player")
+
+
 # =========================
-# VIDEO FEED KE WEBSITE
+# KIRIM FILE VIDEO KE PLAYER HTML5
 # =========================
-@app.route("/video_feed")
-def video_feed():
-    if "username" not in session:
+@app.route("/video-file/<int:video_id>")
+def video_file(video_id):
+    if "user_id" not in session:
         return redirect(url_for("login"))
 
-    if "current_video_id" not in session:
-        return "", 204
+    video = get_video_by_id(video_id, session["user_id"])
 
-    def generate():
-        while True:
-            with frame_lock:
-                frame = latest_frame
+    if not video:
+        abort(404)
 
-            if frame:
-                yield (
-                    b"--frame\r\n"
-                    b"Content-Type: image/jpeg\r\n\r\n" +
-                    frame +
-                    b"\r\n"
-                )
+    video_path = resolve_project_path(video["video_path"])
 
-            time.sleep(0.03)
+    if not os.path.exists(video_path):
+        abort(404)
 
-    return Response(
-        generate(),
-        mimetype="multipart/x-mixed-replace; boundary=frame"
+    return send_file(
+        video_path,
+        conditional=True
     )
 
 
@@ -991,6 +968,9 @@ def video_feed():
 # =========================
 @app.route("/logout")
 def logout():
+    if session.get("current_video_id"):
+        stop_udp_sender()
+
     session.clear()
     return redirect(url_for("login"))
 
